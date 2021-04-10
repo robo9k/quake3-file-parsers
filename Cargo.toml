@@ -1,0 +1,7 @@
+[package]
+name = "quake3-file-parsers"
+version = "0.1.0"
+authors = ["robot9001 <robo9k@symlink.io>"]
+edition = "2018"
+
+[dependencies]
