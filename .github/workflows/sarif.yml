@@ -1,4 +1,8 @@
 on:
+    push:
+        paths:
+            - '**.sarif'
+
     workflow_dispatch:
 
 jobs:
