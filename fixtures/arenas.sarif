@@ -1,0 +1,63 @@
+{
+    "version": "2.1.0",
+    "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+    "runs": [
+        {
+            "tool": {
+                "driver": {
+                    "name": "q3-arena-lint",
+                    "informationUri": "https://github.com/robo9k/quake3-file-parsers",
+                    "semanticVersion": "0.0.0",
+                    "rules": [
+                        {
+                            "id": "MAP001",
+                            "name": "MapNamePattern",
+                            "helpUri": "https://robo9k.github.io/quake3-file-parsers/q3-arena-lint/rules/MAP-001/",
+                            "shortDescription": {
+                                "text": "Map name does not follow pattern 'foo'."
+                            },
+                            "fullDescription": {
+                                "text": "Map names should have a consistent naming pattern."
+                            },
+                            "help": {
+                                "text": "???"
+                            },
+                            "messageStrings": {
+                                "mismatch": {
+                                    "text": "Map name '{0}' does not follow pattern."
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "results": [
+                {
+                    "ruleId": "MAP001",
+                    "ruleIndex": 0,
+                    "message": {
+                        "id": "mismatch",
+                        "arguments": [
+                            "ce1m7"
+                        ]
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "arenas.txt"
+                                },
+                                "region": {
+                                    "startLine": 12,
+                                    "startColumn": 17,
+                                    "endLine": 12,
+                                    "endColumn": 24
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
