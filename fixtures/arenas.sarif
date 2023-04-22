@@ -54,6 +54,29 @@
                                     "severity": "error"
                                 }
                             }
+                        },
+                        {
+                            "id": "MAP003",
+                            "name": "ArenaDependsOnFiles",
+                            "helpUri": "https://robo9k.github.io/quake3-file-parsers/q3-arena-lint/rules/MAP-003/",
+                            "shortDescription": {
+                                "text": "Manually check arena file dependencies."
+                            },
+                            "fullDescription": {
+                                "text": "Remember to manually check that your VFS contains all the files required or recommended for the arena."
+                            },
+                            "help": {
+                                "text": "Arena file dependencies."
+                            },
+                            "properties": {
+                                "tags": [
+                                    "map"
+                                ],
+                                "precision": "very-high",
+                                "problem": {
+                                    "severity": "recommendation"
+                                }
+                            }
                         }
                     ]
                 }
@@ -105,6 +128,49 @@
                             },
                             "message": {
                                 "text": "Definition of map info block."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "ruleId": "MAP003",
+                    "ruleIndex": 2,
+                    "message": {
+                        "text": "Arena file dependencies: 'maps/oa_rpg3dm2.bsp'."
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "fixtures/arenas.txt"
+                                },
+                                "region": {
+                                    "startLine": 4,
+                                    "startColumn": 17,
+                                    "endLine": 4,
+                                    "endColumn": 29
+                                }
+                            },
+                            "message": {
+                                "text": "Definition of map name."
+                            }
+                        }
+                    ],
+                    "relatedLocations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "fixtures/arenas.txt"
+                                },
+                                "region": {
+                                    "startLine": 3,
+                                    "startColumn": 1,
+                                    "endLine": 9,
+                                    "endColumn": 1
+                                }
+                            },
+                            "message": {
+                                "text": "Map info block."
                             }
                         }
                     ]
