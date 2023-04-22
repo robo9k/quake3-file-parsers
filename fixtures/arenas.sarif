@@ -7,20 +7,29 @@
                 "driver": {
                     "name": "q3-arena-lint",
                     "informationUri": "https://github.com/robo9k/quake3-file-parsers",
-                    "semanticVersion": "0.0.0",
+                    "semanticVersion": "0.0.1",
                     "rules": [
                         {
                             "id": "MAP001",
                             "name": "MapNamePattern",
                             "helpUri": "https://robo9k.github.io/quake3-file-parsers/q3-arena-lint/rules/MAP-001/",
                             "shortDescription": {
-                                "text": "Map name does not follow pattern 'foo'."
+                                "text": "Checks map names for configured pattern."
                             },
                             "fullDescription": {
-                                "text": "Map names should have a consistent naming pattern."
+                                "text": "Checks that map names follow a configured pattern."
                             },
                             "help": {
-                                "text": "???"
+                                "text": "Map name does not follow pattern."
+                            },
+                            "properties": {
+                                "tags": [
+                                    "map"
+                                ],
+                                "precision": "very-high",
+                                "problem": {
+                                    "severity": "recommendation"
+                                }
                             }
                         }
                     ]
@@ -31,13 +40,13 @@
                     "ruleId": "MAP001",
                     "ruleIndex": 0,
                     "message": {
-                        "text": "Map name 'ce1m7' does not match pattern"
+                        "text": "Map name 'ce1m7' does not match pattern 'oa_*'"
                     },
                     "locations": [
                         {
                             "physicalLocation": {
                                 "artifactLocation": {
-                                    "uri": "arenas.txt"
+                                    "uri": "fixtures/arenas.txt"
                                 },
                                 "region": {
                                     "startLine": 12,
@@ -45,6 +54,9 @@
                                     "endLine": 12,
                                     "endColumn": 24
                                 }
+                            },
+                            "message": {
+                                "text": "Definition of the map name."
                             }
                         }
                     ]
