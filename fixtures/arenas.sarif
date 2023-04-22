@@ -21,11 +21,6 @@
                             },
                             "help": {
                                 "text": "???"
-                            },
-                            "messageStrings": {
-                                "mismatch": {
-                                    "text": "Map name '{0}' does not follow pattern."
-                                }
                             }
                         }
                     ]
@@ -36,10 +31,7 @@
                     "ruleId": "MAP001",
                     "ruleIndex": 0,
                     "message": {
-                        "id": "mismatch",
-                        "arguments": [
-                            "ce1m7"
-                        ]
+                        "text": "Map name 'ce1m7' does not match pattern"
                     },
                     "locations": [
                         {
