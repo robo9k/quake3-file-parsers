@@ -2,6 +2,8 @@ on:
     push:
         paths:
             - '**.sarif'
+            - '**/arenas.txt'
+            - '**.arena'
 
     workflow_dispatch:
 
