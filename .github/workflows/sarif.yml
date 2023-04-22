@@ -2,7 +2,13 @@ on:
     push:
         paths:
             - '**.sarif'
-
+            - '**/arenas.txt'
+            - '**.arena'
+    pull_request:
+        paths:
+            - '**.sarif'
+            - '**/arenas.txt'
+            - '**.arena'
     workflow_dispatch:
 
 jobs:
