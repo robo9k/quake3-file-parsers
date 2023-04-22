@@ -7,24 +7,24 @@
                 "driver": {
                     "name": "q3-arena-lint",
                     "informationUri": "https://github.com/robo9k/quake3-file-parsers",
-                    "semanticVersion": "0.0.1",
+                    "semanticVersion": "0.0.2",
                     "rules": [
                         {
                             "id": "MAP001",
-                            "name": "MapNamePattern",
+                            "name": "MapNameMatchesPattern",
                             "helpUri": "https://robo9k.github.io/quake3-file-parsers/q3-arena-lint/rules/MAP-001/",
                             "shortDescription": {
-                                "text": "Checks map names for configured pattern."
+                                "text": "Use map names matching the configured pattern."
                             },
                             "fullDescription": {
-                                "text": "Checks that map names follow a configured pattern."
+                                "text": "Use map names that match a configured pattern so the whole set of built-in arenas is consistent."
                             },
                             "help": {
-                                "text": "Map name does not follow pattern."
+                                "text": "Use map names matching the configured pattern."
                             },
                             "properties": {
                                 "tags": [
-                                    "map"
+                                    "naming"
                                 ],
                                 "precision": "very-high",
                                 "problem": {
@@ -34,20 +34,20 @@
                         },
                         {
                             "id": "MAP002",
-                            "name": "MapNameMissing",
+                            "name": "MapNameIsMissing",
                             "helpUri": "https://robo9k.github.io/quake3-file-parsers/q3-arena-lint/rules/MAP-002/",
                             "shortDescription": {
-                                "text": "Checks that arena info contains name."
+                                "text": "Arena is missing map name."
                             },
                             "fullDescription": {
-                                "text": "Checks that arena info contains required 'map' name value."
+                                "text": "Arena must have a map name to be functional."
                             },
                             "help": {
-                                "text": "Map name is missing."
+                                "text": "Arena is missing map name."
                             },
                             "properties": {
                                 "tags": [
-                                    "map"
+                                    "syntax"
                                 ],
                                 "precision": "very-high",
                                 "problem": {
@@ -60,17 +60,17 @@
                             "name": "ArenaDependsOnFiles",
                             "helpUri": "https://robo9k.github.io/quake3-file-parsers/q3-arena-lint/rules/MAP-003/",
                             "shortDescription": {
-                                "text": "Manually check arena file dependencies."
+                                "text": "Arena depends on other files."
                             },
                             "fullDescription": {
-                                "text": "Remember to manually check that your VFS contains all the files required or recommended for the arena."
+                                "text": "Arena depends on other files such as a BSP, AAS and levelshots."
                             },
                             "help": {
-                                "text": "Arena file dependencies."
+                                "text": "Arena depends on other files."
                             },
                             "properties": {
                                 "tags": [
-                                    "map"
+                                    "dependencies"
                                 ],
                                 "precision": "very-high",
                                 "problem": {
@@ -86,8 +86,9 @@
                     "ruleId": "MAP001",
                     "ruleIndex": 0,
                     "message": {
-                        "text": "Map name 'ce1m7' does not match pattern 'oa_*'"
+                        "text": "Map name 'ce1m7' does not match pattern 'oa_*'."
                     },
+                    "level": "warning",
                     "locations": [
                         {
                             "physicalLocation": {
@@ -102,7 +103,7 @@
                                 }
                             },
                             "message": {
-                                "text": "Definition of the map name."
+                                "text": "Definition of 'map' name attribute."
                             }
                         }
                     ]
@@ -113,6 +114,7 @@
                     "message": {
                         "text": "Map name is missing."
                     },
+                    "level": "error",
                     "locations": [
                         {
                             "physicalLocation": {
@@ -123,11 +125,11 @@
                                     "startLine": 1,
                                     "startColumn": 1,
                                     "endLine": 3,
-                                    "endColumn": 1
+                                    "endColumn": 2
                                 }
                             },
                             "message": {
-                                "text": "Definition of map info block."
+                                "text": "Definition of arena info block."
                             }
                         }
                     ]
@@ -136,8 +138,9 @@
                     "ruleId": "MAP003",
                     "ruleIndex": 2,
                     "message": {
-                        "text": "Arena file dependencies: 'maps/oa_rpg3dm2.bsp'."
+                        "text": "Arena depends on files: 'maps/oa_rpg3dm2.bsp'."
                     },
+                    "level": "note",
                     "locations": [
                         {
                             "physicalLocation": {
@@ -152,25 +155,7 @@
                                 }
                             },
                             "message": {
-                                "text": "Definition of map name."
-                            }
-                        }
-                    ],
-                    "relatedLocations": [
-                        {
-                            "physicalLocation": {
-                                "artifactLocation": {
-                                    "uri": "fixtures/arenas.txt"
-                                },
-                                "region": {
-                                    "startLine": 3,
-                                    "startColumn": 1,
-                                    "endLine": 9,
-                                    "endColumn": 1
-                                }
-                            },
-                            "message": {
-                                "text": "Map info block."
+                                "text": "Definition of 'map' name attribute."
                             }
                         }
                     ]
