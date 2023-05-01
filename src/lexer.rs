@@ -98,6 +98,18 @@ mod tests {
     }
 
     #[test]
+    fn line_comment_eof() {
+        assert_lex(
+            "abc // de",
+            &[
+                (Tokens::String, "abc", 0..3),
+                (Tokens::Whitespace, " ", 3..4),
+                (Tokens::LineComment, "// de", 4..9),
+            ],
+        );
+    }
+
+    #[test]
     fn block_comment() {
         assert_lex(
             "abc /* de\nf */",
