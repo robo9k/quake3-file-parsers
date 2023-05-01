@@ -5,4 +5,5 @@ authors = ["robot9001 <robo9k@symlink.io>"]
 edition = "2018"
 
 [dependencies]
+cstree = { version = "0.12.0-rc.0", features = ["derive"] }
 logos = "0.13"
