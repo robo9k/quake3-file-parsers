@@ -122,6 +122,17 @@ impl<'src> Lexer<'src> {
     }
 }
 
+impl<'src> Iterator for Lexer<'src> {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().map(|kind| match kind {
+            Ok(kind) => Token::new(kind),
+            Err(_) => Token::new(TokenKind::Error),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use logos::source::Source;
@@ -310,5 +321,21 @@ mod tests {
         let src = "hurz";
         let lexer = Lexer::new(&src);
         assert_eq!(lexer.source(), src);
+    }
+
+    #[test]
+    fn test_lexer_iter() {
+        let src = "abc\ndef_";
+        let lexer = Lexer::new(&src);
+        let tokens: Vec<_> = lexer.collect();
+        assert_eq!(
+            tokens,
+            &[
+                (Token::new(TokenKind::String)),
+                (Token::new(TokenKind::Newline)),
+                (Token::new(TokenKind::String)),
+                (Token::new(TokenKind::Error)),
+            ],
+        );
     }
 }
