@@ -37,6 +37,11 @@ pub enum TokenKind {
     /// `"[a-zA-Z \t\n]+"` (a string that can also include whitespace and newlines)
     #[regex(r#""[a-zA-Z \t\n]+""#)]
     QuotedString,
+
+    /// Unkown token.
+    ///
+    /// Kept for lossless parsing.
+    Error,
 }
 
 impl TokenKind {
@@ -68,6 +73,7 @@ impl ::core::fmt::Display for TokenKind {
             Self::BlockComment => f.write_str("block comment"),
             Self::String => f.write_str("string"),
             Self::QuotedString => f.write_str("quoted string"),
+            Self::Error => f.write_str("error"),
         }
     }
 }
