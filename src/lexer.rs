@@ -17,9 +17,6 @@ enum Tokens {
     String,
     #[regex(r#""[a-zA-Z \t\n]+""#)]
     QuotedString,
-
-    #[error]
-    Error,
 }
 
 #[cfg(test)]
@@ -33,9 +30,13 @@ mod tests {
     use super::*;
 
     // https://github.com/maciejhirsz/logos/blob/master/tests/src/lib.rs
-    fn assert_lex<'a, Token>(
+    pub fn assert_lex<'a, Token>(
         source: &'a Token::Source,
-        tokens: &[(Token, &'a <Token::Source as Source>::Slice, Range<usize>)],
+        tokens: &[(
+            Result<Token, Token::Error>,
+            &'a <Token::Source as Source>::Slice,
+            Range<usize>,
+        )],
     ) where
         Token: Logos<'a> + fmt::Debug + PartialEq,
         Token::Extras: Default,
@@ -57,13 +58,13 @@ mod tests {
         assert_lex(
             "abc\nd\te f",
             &[
-                (Tokens::String, "abc", 0..3),
-                (Tokens::Newline, "\n", 3..4),
-                (Tokens::String, "d", 4..5),
-                (Tokens::Whitespace, "\t", 5..6),
-                (Tokens::String, "e", 6..7),
-                (Tokens::Whitespace, " ", 7..8),
-                (Tokens::String, "f", 8..9),
+                (Ok(Tokens::String), "abc", 0..3),
+                (Ok(Tokens::Newline), "\n", 3..4),
+                (Ok(Tokens::String), "d", 4..5),
+                (Ok(Tokens::Whitespace), "\t", 5..6),
+                (Ok(Tokens::String), "e", 6..7),
+                (Ok(Tokens::Whitespace), " ", 7..8),
+                (Ok(Tokens::String), "f", 8..9),
             ],
         );
     }
@@ -73,12 +74,12 @@ mod tests {
         assert_lex(
             "abc\n\ndef\r\n",
             &[
-                (Tokens::String, "abc", 0..3),
-                (Tokens::Newline, "\n", 3..4),
-                (Tokens::Newline, "\n", 4..5),
-                (Tokens::String, "def", 5..8),
-                (Tokens::Error, "\r", 8..9),
-                (Tokens::Newline, "\n", 9..10),
+                (Ok(Tokens::String), "abc", 0..3),
+                (Ok(Tokens::Newline), "\n", 3..4),
+                (Ok(Tokens::Newline), "\n", 4..5),
+                (Ok(Tokens::String), "def", 5..8),
+                (Err(()), "\r", 8..9),
+                (Ok(Tokens::Newline), "\n", 9..10),
             ],
         );
     }
@@ -88,11 +89,11 @@ mod tests {
         assert_lex(
             "abc // de\nf//",
             &[
-                (Tokens::String, "abc", 0..3),
-                (Tokens::Whitespace, " ", 3..4),
-                (Tokens::LineComment, "// de\n", 4..10),
-                (Tokens::String, "f", 10..11),
-                (Tokens::LineComment, "//", 11..13),
+                (Ok(Tokens::String), "abc", 0..3),
+                (Ok(Tokens::Whitespace), " ", 3..4),
+                (Ok(Tokens::LineComment), "// de\n", 4..10),
+                (Ok(Tokens::String), "f", 10..11),
+                (Ok(Tokens::LineComment), "//", 11..13),
             ],
         );
     }
@@ -102,9 +103,9 @@ mod tests {
         assert_lex(
             "abc // de",
             &[
-                (Tokens::String, "abc", 0..3),
-                (Tokens::Whitespace, " ", 3..4),
-                (Tokens::LineComment, "// de", 4..9),
+                (Ok(Tokens::String), "abc", 0..3),
+                (Ok(Tokens::Whitespace), " ", 3..4),
+                (Ok(Tokens::LineComment), "// de", 4..9),
             ],
         );
     }
@@ -114,9 +115,9 @@ mod tests {
         assert_lex(
             "abc /* de\nf */",
             &[
-                (Tokens::String, "abc", 0..3),
-                (Tokens::Whitespace, " ", 3..4),
-                (Tokens::BlockComment, "/* de\nf */", 4..14),
+                (Ok(Tokens::String), "abc", 0..3),
+                (Ok(Tokens::Whitespace), " ", 3..4),
+                (Ok(Tokens::BlockComment), "/* de\nf */", 4..14),
             ],
         );
     }
@@ -126,12 +127,12 @@ mod tests {
         assert_lex(
             "a\nb \ncde",
             &[
-                (Tokens::String, "a", 0..1),
-                (Tokens::Newline, "\n", 1..2),
-                (Tokens::String, "b", 2..3),
-                (Tokens::Whitespace, " ", 3..4),
-                (Tokens::Newline, "\n", 4..5),
-                (Tokens::String, "cde", 5..8),
+                (Ok(Tokens::String), "a", 0..1),
+                (Ok(Tokens::Newline), "\n", 1..2),
+                (Ok(Tokens::String), "b", 2..3),
+                (Ok(Tokens::Whitespace), " ", 3..4),
+                (Ok(Tokens::Newline), "\n", 4..5),
+                (Ok(Tokens::String), "cde", 5..8),
             ],
         );
     }
@@ -141,9 +142,9 @@ mod tests {
         assert_lex(
             "a\"b c\nd\"e",
             &[
-                (Tokens::String, "a", 0..1),
-                (Tokens::QuotedString, "\"b c\nd\"", 1..8),
-                (Tokens::String, "e", 8..9),
+                (Ok(Tokens::String), "a", 0..1),
+                (Ok(Tokens::QuotedString), "\"b c\nd\"", 1..8),
+                (Ok(Tokens::String), "e", 8..9),
             ],
         );
     }
@@ -153,44 +154,44 @@ mod tests {
         assert_lex(
             "a \"b1§$%&/{([)]=}\\?´`+*~#'@c,;.:-_d<>|e",
             &[
-                (Tokens::String, "a", 0..1),
-                (Tokens::Whitespace, " ", 1..2),
-                (Tokens::Error, "\"b", 2..4),
-                (Tokens::Error, "1", 4..5),
-                (Tokens::Error, "§", 5..7),
-                (Tokens::Error, "$", 7..8),
-                (Tokens::Error, "%", 8..9),
-                (Tokens::Error, "&", 9..10),
-                (Tokens::Error, "/", 10..11),
-                (Tokens::Error, "{", 11..12),
-                (Tokens::Error, "(", 12..13),
-                (Tokens::Error, "[", 13..14),
-                (Tokens::Error, ")", 14..15),
-                (Tokens::Error, "]", 15..16),
-                (Tokens::Error, "=", 16..17),
-                (Tokens::Error, "}", 17..18),
-                (Tokens::Error, "\\", 18..19),
-                (Tokens::Error, "?", 19..20),
-                (Tokens::Error, "´", 20..22),
-                (Tokens::Error, "`", 22..23),
-                (Tokens::Error, "+", 23..24),
-                (Tokens::Error, "*", 24..25),
-                (Tokens::Error, "~", 25..26),
-                (Tokens::Error, "#", 26..27),
-                (Tokens::Error, "'", 27..28),
-                (Tokens::Error, "@", 28..29),
-                (Tokens::String, "c", 29..30),
-                (Tokens::Error, ",", 30..31),
-                (Tokens::Error, ";", 31..32),
-                (Tokens::Error, ".", 32..33),
-                (Tokens::Error, ":", 33..34),
-                (Tokens::Error, "-", 34..35),
-                (Tokens::Error, "_", 35..36),
-                (Tokens::String, "d", 36..37),
-                (Tokens::Error, "<", 37..38),
-                (Tokens::Error, ">", 38..39),
-                (Tokens::Error, "|", 39..40),
-                (Tokens::String, "e", 40..41),
+                (Ok(Tokens::String), "a", 0..1),
+                (Ok(Tokens::Whitespace), " ", 1..2),
+                (Err(()), "\"b", 2..4),
+                (Err(()), "1", 4..5),
+                (Err(()), "§", 5..7),
+                (Err(()), "$", 7..8),
+                (Err(()), "%", 8..9),
+                (Err(()), "&", 9..10),
+                (Err(()), "/", 10..11),
+                (Err(()), "{", 11..12),
+                (Err(()), "(", 12..13),
+                (Err(()), "[", 13..14),
+                (Err(()), ")", 14..15),
+                (Err(()), "]", 15..16),
+                (Err(()), "=", 16..17),
+                (Err(()), "}", 17..18),
+                (Err(()), "\\", 18..19),
+                (Err(()), "?", 19..20),
+                (Err(()), "´", 20..22),
+                (Err(()), "`", 22..23),
+                (Err(()), "+", 23..24),
+                (Err(()), "*", 24..25),
+                (Err(()), "~", 25..26),
+                (Err(()), "#", 26..27),
+                (Err(()), "'", 27..28),
+                (Err(()), "@", 28..29),
+                (Ok(Tokens::String), "c", 29..30),
+                (Err(()), ",", 30..31),
+                (Err(()), ";", 31..32),
+                (Err(()), ".", 32..33),
+                (Err(()), ":", 33..34),
+                (Err(()), "-", 34..35),
+                (Err(()), "_", 35..36),
+                (Ok(Tokens::String), "d", 36..37),
+                (Err(()), "<", 37..38),
+                (Err(()), ">", 38..39),
+                (Err(()), "|", 39..40),
+                (Ok(Tokens::String), "e", 40..41),
             ],
         );
     }

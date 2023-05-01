@@ -5,4 +5,4 @@ authors = ["robot9001 <robo9k@symlink.io>"]
 edition = "2018"
 
 [dependencies]
-logos = "0.12.0"
+logos = "0.13"
