@@ -15,8 +15,8 @@ pub enum SyntaxKind {
     LineComment,
     BlockComment,
 
-    String,
-    QuotedString,
+    Key,
+    Value,
 
     #[static_text("{")]
     LeftBrace,
@@ -24,6 +24,7 @@ pub enum SyntaxKind {
     RightBrace,
 
     Section,
+    KeyValuePair,
 
     Error,
     Root,
