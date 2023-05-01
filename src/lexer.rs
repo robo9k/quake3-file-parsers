@@ -38,7 +38,7 @@ pub enum TokenKind {
     #[regex(r#""[a-zA-Z \t\n]+""#)]
     QuotedString,
 
-    /// Unkown token.
+    /// Unknown token.
     ///
     /// Kept for lossless parsing.
     Error,
@@ -81,6 +81,44 @@ impl ::core::fmt::Display for TokenKind {
 impl ::core::convert::From<TokenKind> for u8 {
     fn from(kind: TokenKind) -> Self {
         kind as u8
+    }
+}
+
+/// Token produced by lexer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Token {
+    kind: TokenKind,
+}
+
+impl Token {
+    /// Creates a new token for the given kind.
+    pub const fn new(kind: TokenKind) -> Self {
+        Self { kind }
+    }
+
+    /// Get the token's kind.
+    pub const fn kind(&self) -> TokenKind {
+        self.kind
+    }
+}
+
+/// Lexer.
+#[derive(Debug)]
+pub struct Lexer<'src> {
+    inner: logos::Lexer<'src, TokenKind>,
+}
+
+impl<'src> Lexer<'src> {
+    /// Creates a new lexer for the given source.
+    pub fn new(source: &'src str) -> Self {
+        Self {
+            inner: TokenKind::lexer(source),
+        }
+    }
+
+    /// Gets the source of this lexer.
+    pub fn source(&self) -> &'src str {
+        self.inner.source()
     }
 }
 
@@ -259,5 +297,18 @@ mod tests {
                 (Ok(TokenKind::String), "e", 40..41),
             ],
         );
+    }
+
+    #[test]
+    fn test_token_new() {
+        let token = Token::new(TokenKind::Error);
+        assert_eq!(token.kind(), TokenKind::Error);
+    }
+
+    #[test]
+    fn test_lexer_new() {
+        let src = "hurz";
+        let lexer = Lexer::new(&src);
+        assert_eq!(lexer.source(), src);
     }
 }
