@@ -1,5 +1,7 @@
 use logos::Logos;
 
+use crate::span::RawSpan;
+
 /// Kind of lexed token.
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -88,17 +90,23 @@ impl ::core::convert::From<TokenKind> for u8 {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Token {
     kind: TokenKind,
+    span: RawSpan,
 }
 
 impl Token {
     /// Creates a new token for the given kind.
-    pub const fn new(kind: TokenKind) -> Self {
-        Self { kind }
+    pub const fn new(kind: TokenKind, span: RawSpan) -> Self {
+        Self { kind, span }
     }
 
     /// Get the token's kind.
     pub const fn kind(&self) -> TokenKind {
         self.kind
+    }
+
+    /// Get the token's span.
+    pub const fn span(&self) -> RawSpan {
+        self.span
     }
 }
 
@@ -126,9 +134,13 @@ impl<'src> Iterator for Lexer<'src> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|kind| match kind {
-            Ok(kind) => Token::new(kind),
-            Err(_) => Token::new(TokenKind::Error),
+        self.inner.next().map(|kind| {
+            let span = self.inner.span();
+            let span = RawSpan::new(span.start as _, span.end as _);
+            match kind {
+                Ok(kind) => Token::new(kind, span),
+                Err(_) => Token::new(TokenKind::Error, span),
+            }
         })
     }
 }
@@ -312,8 +324,9 @@ mod tests {
 
     #[test]
     fn test_token_new() {
-        let token = Token::new(TokenKind::Error);
+        let token = Token::new(TokenKind::Error, RawSpan::new(0, 0));
         assert_eq!(token.kind(), TokenKind::Error);
+        assert_eq!(token.span(), RawSpan::new(0, 0));
     }
 
     #[test]
@@ -331,10 +344,10 @@ mod tests {
         assert_eq!(
             tokens,
             &[
-                (Token::new(TokenKind::String)),
-                (Token::new(TokenKind::Newline)),
-                (Token::new(TokenKind::String)),
-                (Token::new(TokenKind::Error)),
+                (Token::new(TokenKind::String, RawSpan::new(0, 3))),
+                (Token::new(TokenKind::Newline, RawSpan::new(3, 4))),
+                (Token::new(TokenKind::String, RawSpan::new(4, 7))),
+                (Token::new(TokenKind::Error, RawSpan::new(7, 8))),
             ],
         );
     }

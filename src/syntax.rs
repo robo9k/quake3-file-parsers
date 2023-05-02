@@ -1,9 +1,7 @@
-use std::iter::Peekable;
-
 use cstree::build::GreenNodeBuilder;
 use cstree::{green::GreenNode, interning::Resolver};
 
-use crate::lexer::{Lexer, Token};
+use crate::lexer::{Lexer, Token, TokenKind};
 
 #[derive(cstree::Syntax, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u32)]
@@ -46,7 +44,7 @@ pub fn parse(text: &str) -> ParseResult<impl Resolver> {
 
 #[derive(Debug)]
 struct Parser<'input> {
-    lexer: Peekable<Lexer<'input>>,
+    lexer: Lexer<'input>,
     builder: GreenNodeBuilder<'static, 'static, ArenasInfoSyntax>,
     errors: Vec<String>,
 }
@@ -54,7 +52,7 @@ struct Parser<'input> {
 impl<'input> Parser<'input> {
     fn new(text: &'input str) -> Self {
         Self {
-            lexer: Lexer::new(text).peekable(),
+            lexer: Lexer::new(text),
             builder: GreenNodeBuilder::new(),
             errors: Vec::new(),
         }
@@ -64,16 +62,31 @@ impl<'input> Parser<'input> {
         self.lexer.next()
     }
 
-    fn peek(&mut self) -> Option<&Token> {
-        self.lexer.peek()
+    fn token(&mut self, token: Token, syntax_kind: SyntaxKind) {
+        let text = &self.lexer.source()[token.span().start() as usize..token.span().end() as usize];
+        self.builder.token(syntax_kind, text);
+    }
+
+    fn static_token(&mut self, syntax_kind: SyntaxKind) {
+        self.builder.static_token(syntax_kind);
     }
 
     fn parse(mut self) -> ParseResult<impl Resolver> {
         self.builder.start_node(SyntaxKind::Root);
 
-        self.builder.start_node(SyntaxKind::Error);
-        while let Some(_) = self.bump() {}
-        self.builder.finish_node();
+        //self.builder.start_node(SyntaxKind::Error);
+        while let Some(token) = self.bump() {
+            match token.kind() {
+                TokenKind::Whitespace => self.token(token, SyntaxKind::Whitespace),
+                TokenKind::Newline => self.static_token(SyntaxKind::Newline),
+                TokenKind::LineComment => self.token(token, SyntaxKind::LineComment),
+                TokenKind::BlockComment => self.token(token, SyntaxKind::BlockComment),
+                TokenKind::String => self.token(token, SyntaxKind::Error),
+                TokenKind::QuotedString => self.token(token, SyntaxKind::Error),
+                TokenKind::Error => self.token(token, SyntaxKind::Error),
+            }
+        }
+        //self.builder.finish_node();
 
         self.builder.finish_node();
 
@@ -98,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let parse = parse("hurz");
+        let parse = parse(" \t\n//foo\n/*bar*/hurz\"hurz\"_");
         let root = SyntaxNode::new_root_with_resolver(parse.green_node, parse.resolver);
         dbg!(root);
         assert!(false);
