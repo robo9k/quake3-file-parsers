@@ -4,7 +4,7 @@ use crate::span::RawSpan;
 
 /// Kind of lexed token.
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[repr(u8)]
+#[repr(u32)]
 pub enum TokenKind {
     /// Whitespace.
     ///
@@ -80,23 +80,24 @@ impl ::core::fmt::Display for TokenKind {
     }
 }
 
-impl ::core::convert::From<TokenKind> for u8 {
+impl ::core::convert::From<TokenKind> for u32 {
     fn from(kind: TokenKind) -> Self {
-        kind as u8
+        kind as u32
     }
 }
 
 /// Token produced by lexer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Token {
+pub struct Token<'src> {
     kind: TokenKind,
     span: RawSpan,
+    text: &'src str,
 }
 
-impl Token {
+impl<'src> Token<'src> {
     /// Creates a new token for the given kind.
-    pub const fn new(kind: TokenKind, span: RawSpan) -> Self {
-        Self { kind, span }
+    pub const fn new(kind: TokenKind, span: RawSpan, text: &'src str) -> Self {
+        Self { kind, span, text }
     }
 
     /// Get the token's kind.
@@ -107,6 +108,11 @@ impl Token {
     /// Get the token's span.
     pub const fn span(&self) -> RawSpan {
         self.span
+    }
+
+    /// Get the token's text.
+    pub const fn text(&self) -> &'src str {
+        self.text
     }
 }
 
@@ -131,15 +137,16 @@ impl<'src> Lexer<'src> {
 }
 
 impl<'src> Iterator for Lexer<'src> {
-    type Item = Token;
+    type Item = Token<'src>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|kind| {
             let span = self.inner.span();
             let span = RawSpan::new(span.start as _, span.end as _);
+            let text = self.inner.slice();
             match kind {
-                Ok(kind) => Token::new(kind, span),
-                Err(_) => Token::new(TokenKind::Error, span),
+                Ok(kind) => Token::new(kind, span, text),
+                Err(_) => Token::new(TokenKind::Error, span, text),
             }
         })
     }
@@ -324,9 +331,10 @@ mod tests {
 
     #[test]
     fn test_token_new() {
-        let token = Token::new(TokenKind::Error, RawSpan::new(0, 0));
+        let token = Token::new(TokenKind::Error, RawSpan::new(0, 0), "");
         assert_eq!(token.kind(), TokenKind::Error);
         assert_eq!(token.span(), RawSpan::new(0, 0));
+        assert_eq!(token.text(), "");
     }
 
     #[test]
@@ -344,10 +352,10 @@ mod tests {
         assert_eq!(
             tokens,
             &[
-                (Token::new(TokenKind::String, RawSpan::new(0, 3))),
-                (Token::new(TokenKind::Newline, RawSpan::new(3, 4))),
-                (Token::new(TokenKind::String, RawSpan::new(4, 7))),
-                (Token::new(TokenKind::Error, RawSpan::new(7, 8))),
+                (Token::new(TokenKind::String, RawSpan::new(0, 3), "abc")),
+                (Token::new(TokenKind::Newline, RawSpan::new(3, 4), "\n")),
+                (Token::new(TokenKind::String, RawSpan::new(4, 7), "def")),
+                (Token::new(TokenKind::Error, RawSpan::new(7, 8), "_")),
             ],
         );
     }

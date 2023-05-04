@@ -13,19 +13,39 @@ pub enum SyntaxKind {
     LineComment,
     BlockComment,
 
-    Key,
-    Value,
+    String,
+    QuotedString,
 
     #[static_text("{")]
     LeftBrace,
     #[static_text("}")]
     RightBrace,
 
+    Key,
+    Value,
+
     Section,
     KeyValuePair,
 
     Error,
     Root,
+}
+
+impl ::core::convert::From<TokenKind> for SyntaxKind {
+    fn from(kind: TokenKind) -> Self {
+        match kind {
+            TokenKind::Whitespace => Self::Whitespace,
+            TokenKind::Newline => Self::Newline,
+
+            TokenKind::LineComment => Self::LineComment,
+            TokenKind::BlockComment => Self::BlockComment,
+
+            TokenKind::String => Self::String,
+            TokenKind::QuotedString => Self::QuotedString,
+
+            TokenKind::Error => Self::Error,
+        }
+    }
 }
 
 type ArenasInfoSyntax = SyntaxKind;
@@ -59,12 +79,23 @@ impl<'input> Parser<'input> {
     }
 
     fn bump(&mut self) -> Option<Token> {
-        self.lexer.next()
+        let token = self.lexer.next();
+        if let Some(token) = token {
+            match token.kind() {
+                TokenKind::Whitespace => self.token(token),
+                TokenKind::Newline => self.static_token(SyntaxKind::Newline),
+                TokenKind::LineComment => self.token(token),
+                TokenKind::BlockComment => self.token(token),
+                TokenKind::String => self.token(token),
+                TokenKind::QuotedString => self.token(token),
+                TokenKind::Error => self.token(token),
+            }
+        }
+        token
     }
 
-    fn token(&mut self, token: Token, syntax_kind: SyntaxKind) {
-        let text = &self.lexer.source()[token.span().start() as usize..token.span().end() as usize];
-        self.builder.token(syntax_kind, text);
+    fn token(&mut self, token: Token) {
+        self.builder.token(token.kind().into(), token.text());
     }
 
     fn static_token(&mut self, syntax_kind: SyntaxKind) {
@@ -75,17 +106,7 @@ impl<'input> Parser<'input> {
         self.builder.start_node(SyntaxKind::Root);
 
         //self.builder.start_node(SyntaxKind::Error);
-        while let Some(token) = self.bump() {
-            match token.kind() {
-                TokenKind::Whitespace => self.token(token, SyntaxKind::Whitespace),
-                TokenKind::Newline => self.static_token(SyntaxKind::Newline),
-                TokenKind::LineComment => self.token(token, SyntaxKind::LineComment),
-                TokenKind::BlockComment => self.token(token, SyntaxKind::BlockComment),
-                TokenKind::String => self.token(token, SyntaxKind::Error),
-                TokenKind::QuotedString => self.token(token, SyntaxKind::Error),
-                TokenKind::Error => self.token(token, SyntaxKind::Error),
-            }
-        }
+        while let Some(token) = self.bump() {}
         //self.builder.finish_node();
 
         self.builder.finish_node();
