@@ -21,14 +21,15 @@ pub enum SyntaxKind {
     #[static_text("}")]
     RightBrace,
 
+    Error,
+
+    Root,
+
+    Arenas,
+    Arena,
+    KeyValuePair,
     Key,
     Value,
-
-    Section,
-    KeyValuePair,
-
-    Error,
-    Root,
 }
 
 impl ::core::convert::From<TokenKind> for SyntaxKind {
@@ -42,6 +43,9 @@ impl ::core::convert::From<TokenKind> for SyntaxKind {
 
             TokenKind::String => Self::String,
             TokenKind::QuotedString => Self::QuotedString,
+
+            TokenKind::LeftBrace => Self::LeftBrace,
+            TokenKind::RightBrace => Self::RightBrace,
 
             TokenKind::Error => Self::Error,
         }
@@ -88,6 +92,8 @@ impl<'input> Parser<'input> {
                 TokenKind::BlockComment => self.token(token),
                 TokenKind::String => self.token(token),
                 TokenKind::QuotedString => self.token(token),
+                TokenKind::LeftBrace => self.static_token(SyntaxKind::LeftBrace),
+                TokenKind::RightBrace => self.static_token(SyntaxKind::RightBrace),
                 TokenKind::Error => self.token(token),
             }
         }
@@ -132,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let parse = parse(" \t\n//foo\n/*bar*/hurz\"hurz\"_");
+        let parse = parse(" \t\n//foo\n/*bar*/{hurz\"hurz\"_");
         let root = SyntaxNode::new_root_with_resolver(parse.green_node, parse.resolver);
         dbg!(root);
         assert!(false);

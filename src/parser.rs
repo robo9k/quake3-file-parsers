@@ -1,9 +1,13 @@
-use crate::{event::Event, lexer::Lexer, syntax::SyntaxKind};
+use crate::{
+    event::Event,
+    lexer::{Lexer, TokenKind, TokenSet},
+    syntax::SyntaxKind,
+};
 
 pub struct Parser<'src> {
     tokens: Lexer<'src>,
     events: Vec<Event>,
-    errors: Vec<()>,
+    errors: Vec<()>, // FIXME
 }
 
 impl<'src> Parser<'src> {
@@ -15,8 +19,28 @@ impl<'src> Parser<'src> {
         }
     }
 
-    fn start(&mut self) -> Marker {
+    pub fn start(&mut self) -> Marker {
         todo!();
+    }
+
+    pub fn at(&self, kind: TokenKind) -> bool {
+        todo!();
+    }
+
+    pub fn expect(&mut self, kind: TokenKind) -> bool {
+        todo!();
+    }
+
+    pub fn expect_any(&mut self, kind: TokenSet) -> bool {
+        todo!();
+    }
+
+    pub fn at_end(&mut self) -> bool {
+        todo!();
+    }
+
+    pub fn push_error(&mut self, error: ()) {
+        self.errors.push(error);
     }
 
     pub fn finish(mut self) -> (Vec<Event>, Vec<()>) {

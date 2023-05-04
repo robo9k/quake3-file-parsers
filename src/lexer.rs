@@ -1,8 +1,10 @@
+use enumflags2::{bitflags, BitFlags};
 use logos::Logos;
 
 use crate::span::RawSpan;
 
 /// Kind of lexed token.
+#[bitflags]
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u32)]
 pub enum TokenKind {
@@ -40,6 +42,17 @@ pub enum TokenKind {
     #[regex(r#""[a-zA-Z \t\n]+""#)]
     QuotedString,
 
+    /// Left brace.
+    ///
+    /// `{`
+    #[token("{")]
+    LeftBrace,
+    /// Right brace.
+    ///
+    /// `}`
+    #[token("}")]
+    RightBrace,
+
     /// Unknown token.
     ///
     /// Kept for lossless parsing.
@@ -75,6 +88,8 @@ impl ::core::fmt::Display for TokenKind {
             Self::BlockComment => f.write_str("block comment"),
             Self::String => f.write_str("string"),
             Self::QuotedString => f.write_str("quoted string"),
+            Self::LeftBrace => f.write_str("left brace"),
+            Self::RightBrace => f.write_str("right brace"),
             Self::Error => f.write_str("error"),
         }
     }
@@ -85,6 +100,8 @@ impl ::core::convert::From<TokenKind> for u32 {
         kind as u32
     }
 }
+
+pub type TokenSet = BitFlags<TokenKind>;
 
 /// Token produced by lexer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -296,13 +313,13 @@ mod tests {
                 (Err(()), "%", 8..9),
                 (Err(()), "&", 9..10),
                 (Err(()), "/", 10..11),
-                (Err(()), "{", 11..12),
+                (Ok(TokenKind::LeftBrace), "{", 11..12),
                 (Err(()), "(", 12..13),
                 (Err(()), "[", 13..14),
                 (Err(()), ")", 14..15),
                 (Err(()), "]", 15..16),
                 (Err(()), "=", 16..17),
-                (Err(()), "}", 17..18),
+                (Ok(TokenKind::RightBrace), "}", 17..18),
                 (Err(()), "\\", 18..19),
                 (Err(()), "?", 19..20),
                 (Err(()), "´", 20..22),
