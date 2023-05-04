@@ -13,6 +13,17 @@ pub enum Event {
         span: RawSpan,
     },
     Exit,
+    Abandoned,
 }
 
-// TODO: SyntaxKind::Tombstone or Event::Abandoned ?
+impl Event {
+    pub const fn is_abandoned(self) -> bool {
+        matches!(self, Self::Abandoned)
+    }
+}
+
+impl Default for Event {
+    fn default() -> Self {
+        Self::Abandoned
+    }
+}
