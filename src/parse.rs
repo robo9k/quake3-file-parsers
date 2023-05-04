@@ -17,11 +17,17 @@ pub fn arenas(parser: &mut Parser) -> Option<CompletedMarker> {
 pub fn arena(parser: &mut Parser) -> Option<CompletedMarker> {
     let arena = parser.start();
 
-    parser.expect(TokenKind::LeftBrace);
+    if !parser.expect(TokenKind::LeftBrace) {
+        arena.abandon(parser);
+        return None;
+    }
     while !parser.at(TokenKind::RightBrace) && !parser.at_end() {
         key_value(parser);
     }
-    parser.expect(TokenKind::RightBrace);
+    if !parser.expect(TokenKind::RightBrace) {
+        arena.abandon(parser);
+        return None;
+    }
 
     Some(arena.complete(parser, SyntaxKind::Arena))
 }

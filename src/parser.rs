@@ -2,22 +2,24 @@ use std::num::NonZeroUsize;
 
 use crate::{
     event::Event,
-    lexer::{Lexer, TokenKind, TokenSet},
+    lexer::{Lexer, Token, TokenKind, TokenSet},
+    source::Source,
     syntax::SyntaxKind,
 };
 
-pub struct Parser<'src> {
-    tokens: Lexer<'src>,
+#[derive(Debug)]
+pub struct Parser<'src, 'token> {
+    source: Source<'src, 'token>,
     events: Vec<Event>,
-    errors: Vec<()>, // FIXME
+    errors: Vec<String>,
 }
 
-impl<'src> Parser<'src> {
-    pub const fn new(tokens: Lexer<'src>) -> Self {
+impl<'src, 'token> Parser<'src, 'token> {
+    pub const fn new(tokens: &'token [Token<'src>]) -> Self {
         Self {
-            tokens,
-            events: vec![],
-            errors: vec![],
+            source: Source::new(tokens),
+            events: Vec::new(),
+            errors: Vec::new(),
         }
     }
 
@@ -28,23 +30,63 @@ impl<'src> Parser<'src> {
         Marker::new(index)
     }
 
-    pub fn at(&self, _kind: TokenKind) -> bool {
-        todo!();
+    pub fn at(&mut self, kind: TokenKind) -> bool {
+        self.source.try_peek_kind() == Some(kind)
     }
 
-    pub fn expect(&mut self, _kind: TokenKind) -> bool {
-        todo!();
+    pub fn bump(&mut self) {
+        if let Some(token) = self.source.next() {
+            self.push_event(Event::Token {
+                kind: token.kind().into(),
+                span: token.span(),
+            });
+        }
     }
 
-    pub fn expect_any(&mut self, _kind: TokenSet) -> bool {
-        todo!();
+    pub fn eat(&mut self, kind: TokenKind) -> bool {
+        if !self.at(kind) {
+            return false;
+        }
+        self.bump();
+        true
+    }
+
+    pub fn expect(&mut self, kind: TokenKind) -> bool {
+        if self.eat(kind) {
+            return true;
+        }
+
+        let error = "expect".to_string();
+        self.error(error);
+        false
+    }
+
+    pub fn expect_any(&mut self, kind: TokenSet) -> bool {
+        if let Some(peek) = self.source.try_peek_kind() {
+            if kind.intersects(peek) {
+                return self.eat(peek);
+            }
+        }
+
+        let error = "expect_any".to_string();
+        self.error(error);
+        false
     }
 
     pub fn at_end(&mut self) -> bool {
-        todo!();
+        self.source.try_peek_kind().is_none()
     }
 
-    pub fn push_error(&mut self, error: ()) {
+    pub fn error(&mut self, error: String) {
+        if !self.at_end() {
+            let marker = self.start();
+            self.bump();
+            marker.complete(self, SyntaxKind::Error);
+        }
+        self.push_error(error);
+    }
+
+    pub fn push_error(&mut self, error: String) {
         self.errors.push(error);
     }
 
@@ -52,7 +94,7 @@ impl<'src> Parser<'src> {
         self.events.push(event);
     }
 
-    pub fn finish(mut self) -> (Vec<Event>, Vec<()>) {
+    pub fn finish(mut self) -> (Vec<Event>, Vec<String>) {
         let root = self.start();
 
         root.complete(&mut self, SyntaxKind::Root);
@@ -61,6 +103,7 @@ impl<'src> Parser<'src> {
     }
 }
 
+#[derive(Debug)]
 pub struct Marker {
     index: usize,
     completed: bool,
@@ -96,6 +139,7 @@ impl Marker {
     }
 }
 
+#[derive(Debug)]
 pub struct CompletedMarker {
     index: usize,
 }
@@ -117,5 +161,28 @@ impl CompletedMarker {
 
     pub fn undo(self, _parser: &mut Parser) -> Marker {
         todo!();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::span::RawSpan;
+
+    #[test]
+    fn test_parser() {
+        let tokens = vec![
+            Token::new(TokenKind::LeftBrace, RawSpan::new(0, 1), "{"),
+            Token::new(TokenKind::Newline, RawSpan::new(1, 2), "\n"),
+            Token::new(TokenKind::String, RawSpan::new(2, 5), "foo"),
+            Token::new(TokenKind::Whitespace, RawSpan::new(5, 6), " "),
+            Token::new(TokenKind::QuotedString, RawSpan::new(6, 11), "\"bar\""),
+            Token::new(TokenKind::RightBrace, RawSpan::new(11, 12), "}"),
+        ];
+        let mut parser = Parser::new(&tokens[..]);
+        crate::parse::arenas(&mut parser);
+        dbg!(parser);
+        assert!(false);
     }
 }
