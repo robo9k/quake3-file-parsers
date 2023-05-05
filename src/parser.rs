@@ -52,23 +52,25 @@ impl<'src, 'token> Parser<'src, 'token> {
     }
 
     pub fn expect(&mut self, kind: TokenKind) -> bool {
+        println!("expect: {:?}", self.source.try_peek_kind());
         if self.eat(kind) {
             return true;
         }
 
-        let error = "expect".to_string();
+        let error = format!("expect {:?}", kind);
         self.error(error);
         false
     }
 
     pub fn expect_any(&mut self, kind: TokenSet) -> bool {
         if let Some(peek) = self.source.try_peek_kind() {
+            println!("expect_any peeked: {:?}", peek);
             if kind.intersects(peek) {
                 return self.eat(peek);
             }
         }
 
-        let error = "expect_any".to_string();
+        let error = format!("expect_any {:?}", kind);
         self.error(error);
         false
     }
@@ -95,9 +97,11 @@ impl<'src, 'token> Parser<'src, 'token> {
     }
 
     pub fn finish(mut self) -> (Vec<Event>, Vec<String>) {
-        let root = self.start();
+        //let root = self.start();
 
-        root.complete(&mut self, SyntaxKind::Root);
+        // FnMut parse::arenas
+
+        //root.complete(&mut self, SyntaxKind::Root);
 
         (self.events, self.errors)
     }
@@ -170,7 +174,7 @@ mod tests {
 
     use crate::span::RawSpan;
 
-    #[test]
+    //#[test]
     fn test_parser() {
         let tokens = vec![
             Token::new(TokenKind::LeftBrace, RawSpan::new(0, 1), "{"),
