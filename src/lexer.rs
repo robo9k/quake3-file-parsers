@@ -10,8 +10,8 @@ use crate::span::RawSpan;
 pub enum TokenKind {
     /// Whitespace.
     ///
-    /// ` ` (space), `\t` (tab)
-    #[regex(r"[ \t]+")]
+    /// `\x01-\x20` (ASCII control characters except NUL `\0` and newline `\n` but including space ` `)
+    #[regex(r"[\x01-\x09\x0B-\x20]+")]
     Whitespace,
 
     /// Newline.
@@ -22,24 +22,24 @@ pub enum TokenKind {
 
     /// Line comment.
     ///
-    /// `//…\n` (a line started by comment prefix)
-    #[regex(r"//[^\n]*\n?")]
+    /// `//…\n` (a line started by `//` comment prefix)
+    #[regex(r"//[^\n]*\n?", priority = 69)]
     LineComment,
     /// Block comment.
     ///
-    /// `/*…*/` (a block surrounded by comment delimiters)
-    #[regex(r"/\*([^*]|\*[^/])+\*/")]
+    /// `/*…*/` (a block surrounded by comment delimiters `/*`, `*/`)
+    #[regex(r"/\*([^*]|\*[^/])*\*/")]
     BlockComment,
 
     /// String.
     ///
-    /// `[a-zA-Z]+` (a string of lower- or uppercase letters)
-    #[regex(r"[a-zA-Z]+")]
+    /// `[\x21-\x7F]+` (ASCII non-control characters except space ` `)
+    #[regex(r"[\x21-\x7F]+")]
     String,
     /// Quoted string.
     ///
-    /// `"[a-zA-Z \t\n]+"` (a string that can also include whitespace and newlines)
-    #[regex(r#""[a-zA-Z \t\n]+""#)]
+    /// `"[^"]*"` (a string that can also include whitespace and newlines)
+    #[regex(r#""[^"]*""#)]
     QuotedString,
 
     /// Left brace.
@@ -228,7 +228,7 @@ mod tests {
                 (Ok(TokenKind::Newline), "\n", 3..4),
                 (Ok(TokenKind::Newline), "\n", 4..5),
                 (Ok(TokenKind::String), "def", 5..8),
-                (Err(()), "\r", 8..9),
+                (Ok(TokenKind::Whitespace), "\r", 8..9),
                 (Ok(TokenKind::Newline), "\n", 9..10),
             ],
         );
@@ -242,8 +242,7 @@ mod tests {
                 (Ok(TokenKind::String), "abc", 0..3),
                 (Ok(TokenKind::Whitespace), " ", 3..4),
                 (Ok(TokenKind::LineComment), "// de\n", 4..10),
-                (Ok(TokenKind::String), "f", 10..11),
-                (Ok(TokenKind::LineComment), "//", 11..13),
+                (Ok(TokenKind::String), "f//", 10..13),
             ],
         );
     }
@@ -290,11 +289,13 @@ mod tests {
     #[test]
     fn quoted_string() {
         assert_lex(
-            "a\"b c\nd\"e",
+            "a \"b c\nd\" e",
             &[
                 (Ok(TokenKind::String), "a", 0..1),
-                (Ok(TokenKind::QuotedString), "\"b c\nd\"", 1..8),
-                (Ok(TokenKind::String), "e", 8..9),
+                (Ok(TokenKind::Whitespace), " ", 1..2),
+                (Ok(TokenKind::QuotedString), "\"b c\nd\"", 2..9),
+                (Ok(TokenKind::Whitespace), " ", 9..10),
+                (Ok(TokenKind::String), "e", 10..11),
             ],
         );
     }
@@ -306,42 +307,7 @@ mod tests {
             &[
                 (Ok(TokenKind::String), "a", 0..1),
                 (Ok(TokenKind::Whitespace), " ", 1..2),
-                (Err(()), "\"b", 2..4),
-                (Err(()), "1", 4..5),
-                (Err(()), "§", 5..7),
-                (Err(()), "$", 7..8),
-                (Err(()), "%", 8..9),
-                (Err(()), "&", 9..10),
-                (Err(()), "/", 10..11),
-                (Ok(TokenKind::LeftBrace), "{", 11..12),
-                (Err(()), "(", 12..13),
-                (Err(()), "[", 13..14),
-                (Err(()), ")", 14..15),
-                (Err(()), "]", 15..16),
-                (Err(()), "=", 16..17),
-                (Ok(TokenKind::RightBrace), "}", 17..18),
-                (Err(()), "\\", 18..19),
-                (Err(()), "?", 19..20),
-                (Err(()), "´", 20..22),
-                (Err(()), "`", 22..23),
-                (Err(()), "+", 23..24),
-                (Err(()), "*", 24..25),
-                (Err(()), "~", 25..26),
-                (Err(()), "#", 26..27),
-                (Err(()), "'", 27..28),
-                (Err(()), "@", 28..29),
-                (Ok(TokenKind::String), "c", 29..30),
-                (Err(()), ",", 30..31),
-                (Err(()), ";", 31..32),
-                (Err(()), ".", 32..33),
-                (Err(()), ":", 33..34),
-                (Err(()), "-", 34..35),
-                (Err(()), "_", 35..36),
-                (Ok(TokenKind::String), "d", 36..37),
-                (Err(()), "<", 37..38),
-                (Err(()), ">", 38..39),
-                (Err(()), "|", 39..40),
-                (Ok(TokenKind::String), "e", 40..41),
+                (Err(()), "\"b1§$%&/{([)]=}\\?´`+*~#'@c,;.:-_d<>|e", 2..41),
             ],
         );
     }
@@ -371,8 +337,7 @@ mod tests {
             &[
                 (Token::new(TokenKind::String, RawSpan::new(0, 3), "abc")),
                 (Token::new(TokenKind::Newline, RawSpan::new(3, 4), "\n")),
-                (Token::new(TokenKind::String, RawSpan::new(4, 7), "def")),
-                (Token::new(TokenKind::Error, RawSpan::new(7, 8), "_")),
+                (Token::new(TokenKind::String, RawSpan::new(4, 8), "def_")),
             ],
         );
     }
