@@ -5,6 +5,7 @@ authors = ["robot9001 <robo9k@symlink.io>"]
 edition = "2018"
 
 [dependencies]
+clap = { version = "4.2.7", features = ["derive"] }
 cstree = { version = "0.12.0-rc.0", features = ["derive"] }
 enumflags2 = "0.7.7"
 logos = "0.13"

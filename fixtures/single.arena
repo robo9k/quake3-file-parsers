@@ -1,0 +1,11 @@
+// lorem ipsum
+/* this is an example of a single arena */
+{
+    // inner comment
+    foo "bar"
+
+    /* another comment */
+    "bar"   foo
+}
+
+:^)

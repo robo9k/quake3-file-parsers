@@ -126,11 +126,9 @@ impl<'input> Parser<'input> {
     }
 }
 
-type SyntaxNode = cstree::syntax::SyntaxNode<ArenasInfoSyntax>;
-#[allow(unused)]
-type SyntaxToken = cstree::syntax::SyntaxToken<ArenasInfoSyntax>;
-#[allow(unused)]
-type SyntaxElement = cstree::syntax::SyntaxElement<ArenasInfoSyntax>;
+pub type SyntaxNode = cstree::syntax::SyntaxNode<ArenasInfoSyntax>;
+pub type SyntaxToken = cstree::syntax::SyntaxToken<ArenasInfoSyntax>;
+pub type SyntaxElement = cstree::syntax::SyntaxElement<ArenasInfoSyntax>;
 
 #[cfg(test)]
 mod tests {

@@ -119,7 +119,7 @@
                         {
                             "physicalLocation": {
                                 "artifactLocation": {
-                                    "uri": "fixtures/test.arena"
+                                    "uri": "fixtures/empty.arena"
                                 },
                                 "region": {
                                     "startLine": 1,
