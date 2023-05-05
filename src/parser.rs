@@ -96,12 +96,15 @@ impl<'src, 'token> Parser<'src, 'token> {
         self.events.push(event);
     }
 
-    pub fn finish(mut self) -> (Vec<Event>, Vec<String>) {
-        //let root = self.start();
+    pub fn parse(
+        mut self,
+        parse: impl FnOnce(&mut Self) -> Option<CompletedMarker>,
+    ) -> (Vec<Event>, Vec<String>) {
+        let root = self.start();
 
-        // FnMut parse::arenas
+        parse(&mut self);
 
-        //root.complete(&mut self, SyntaxKind::Root);
+        root.complete(&mut self, SyntaxKind::Root);
 
         (self.events, self.errors)
     }

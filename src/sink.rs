@@ -117,10 +117,9 @@ mod tests {
             Token::new(TokenKind::RightBrace, RawSpan::new(11, 12), "}"),
         ];
         let mut parser = Parser::new(&tokens[..]);
-        crate::parse::arenas(&mut parser);
         //parser = dbg!(parser);
 
-        let (events, errors) = parser.finish();
+        let (events, errors) = parser.parse(crate::parse::arenas);
         let sink = Sink::new(src, tokens, events);
         let (root, resolver) = sink.finish();
         //dbg!(root);
